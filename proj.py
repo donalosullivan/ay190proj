@@ -9,18 +9,26 @@ vis = np.loadtxt("Visibilities.csv",delimiter=',') #visibilities ( (i,j,A,phi) )
 pos = np.loadtxt("AntennaPositions.csv",delimiter=',') #positions ( (x,y) )
 
 #3. Create derived data
-n = len(pos) #store total number of antennae
-B = np.zeros( (n,n) ) #Will store baseline vector (u,v) at each index (i,j)
+n = np.shape(pos)[0] #store total number of antennae
+nbas=n*(n-1)/2. #calculate the number of independent baselines
+u=np.zeros((n,n))
+v=np.zeros((n,n))
 for i in range(n):
     for j in range(n):       
         #Get antennae positions
-        xi,yi = pos[i]
-        xj,yj = pos[j]
+        xi,yi = pos[i][1],pos[i][2]
+        xj,yj = pos[j][1],pos[j][2]
         #Get wavelength-calibrated baseline vector
-        u = (xi - xj)/lam
-        v = (yi - yj)/lam
-        #Store in array
-        B[i,j] = (u,v)
+        u[i][j] = (xi - xj)/lam
+        v[i][j] = (yi - yj)/lam
+
+uvvis=np.zeros(np.shape(vis))
+for i in range(np.shape(uvvis)[0]):
+    a,b,A,phi=vis[i]
+    uvvis[i][0]=u[a-1,b-1]
+    uvvis[i][1]=v[a-1,b-1]
+    uvvis[i][2]=A
+    uvvis[i][3]=phi
 
 #4. Methods
 

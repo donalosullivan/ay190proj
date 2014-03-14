@@ -14,6 +14,3 @@ raw data:
         indexes are such that vis[0] gives first row in text file
 
 
-have fun git!
-lalalalalalalalala
-

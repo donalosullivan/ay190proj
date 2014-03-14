@@ -25,5 +25,5 @@ for i in range(n):
 #4. Methods
 
 def gauss(x,y,sig=arcmin):
-    return 
+    return (1.0/sig)*(2*np.pi)**(-0.5)*np.exp( (1.0/(2*
     

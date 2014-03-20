@@ -1,4 +1,5 @@
 import numpy as np
+from bisect import bisect_left
 import matplotlib.pyplot as mpl
 
 #1. Constants
@@ -29,13 +30,18 @@ for i in range(n):
         
         
 #Create array of form (u,v,A,phi)
-uvvis=np.zeros(np.shape(vis))
-for i in range(np.shape(uvvis)[0]):
-    a,b,A,phi=vis[i]
+uvvis=np.zeros((2*np.shape(vis)[0],np.shape(vis)[1]))
+for i in range(np.shape(uvvis)[0]/2):
+    a,b,amp,phi=vis[i]
     uvvis[i][0]=u[a-1,b-1]
     uvvis[i][1]=v[a-1,b-1]
-    uvvis[i][2]=A
+    uvvis[i][2]=amp
     uvvis[i][3]=phi
+    
+    uvvis[i+np.shape(uvvis)[0]/2]=-u[a-1,b-1]
+    uvvis[i+np.shape(uvvis)[0]/2][1]=-v[a-1,b-1]
+    uvvis[i+np.shape(uvvis)[0]/2][2]=amp
+    uvvis[i+np.shape(uvvis)[0]/2][3]=-phi
 
 print uvvis.shape
 
@@ -51,7 +57,7 @@ m = np.linspace(-mmax,mmax,res) #DEC from zenith
 def A(l,m,sig=arcmin):
     a = 1.0/(sig*np.sqrt(2*pi))
     b = (1.0/(2*sig**2))
-    return a*np.exp( b*( l**2 - m**2 ) )
+    return a*np.exp( b*(- l**2 - m**2 ) )
 
 #RHS function for Discrete FT: Sum over (u,v)
 def DFT_rhs(uvvis,l,m):
@@ -68,7 +74,34 @@ def DFT(uvvis,L,M):
         for m in M:
             a = np.sqrt( 1 - l**2 - m**2 )
             I[l,m] = a*DFT_rhs(uvvis,l,m)/A(l,m)
-    return I      
+    return I  
+
+def find_nearest_gridpoint(x,xlist):
+	pos=bisect_left(xlist,x)
+	if pos == 0:
+        	return 0
+        if pos == len(xlist):
+        	return len(xlist)-1
+        before = xlist[pos - 1]
+        after = xlist[pos]
+        if after - x < x - before:
+        	return pos
+        else:
+        	return pos-1
+
+def uv_grid(uvvis,ugrid,vgrid):
+	gridded_visibilities = np.zeros((len(ugrid),len(vgrid)))+im*np.zeros((len(ugrid),len(vgrid)))
+	for i in range(np.shape(uvvis)[0]):
+		umeas=uvvis[i][0]
+		vmeas=uvvis[i][1]
+		amp=uvvis[i][2]
+		phi=uvvis[i][3]
+		j=find_nearest_gridpoint(umeas,ugrid)
+		k=find_nearest_gridpoint(vmeas,vgrid)
+		gridded_visibilities[j][k]+=amp*np.exp(im*phi)
+	return gridded_visibilities
+
+    
 
 #Return indices of rows in uvvis which only use N closest/farthest antennae
 def get_selection(pos,vis,N,orderby='asc'):
@@ -121,4 +154,23 @@ I = DFT(uvvis_cropped,l,m) #Get intensity array using UVIS
 mpl.figure()
 mpl.pcolor(I)
 mpl.show()
-    
+
+ugrid = np.linspace(-60000,60000,res)
+vgrid = np.linspace(-60000,60000,res)
+
+Vgrid=uv_grid(uvvis,ugrid,vgrid)
+
+fftI=np.zeros(np.shape(Vgrid))+np.zeros(np.shape(Vgrid))*im
+for i in range(len(l)):
+	for j in range(len(m)):
+		fftI[i][j]=(np.fft.fftshift(np.fft.ifft2(Vgrid))[i][j]*(1-l[i]**2-m[j]**2)**0.5)/(A(l[i],m[j]))
+		
+print fftI
+lmax=lmax/arcsec
+mmax=mmax/arcsec
+mpl.imshow(np.abs(fftI),extent=[-lmax,lmax,-mmax,mmax])
+mpl.show()
+
+mpl.imshow(np.abs(Vgrid),extent=[-lmax,lmax,-mmax,mmax])
+mpl.show()
+

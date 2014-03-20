@@ -14,8 +14,8 @@ vis = np.loadtxt("Visibilities.csv",delimiter=',') #visibilities ( (i,j,A,phi) )
 pos = np.loadtxt("AntennaPositions.csv",delimiter=',') #positions ( (x,y) )
 
 #3. Create derived data
-n = pos.shape[0] #store total number of antennae
-nbas=n*(n-1)/2. #calculate the number of independent baselines
+n = pos.shape[0] #Store total number of antennae
+nbas=n*(n-1)/2. #Calculate the number of independent baselines
 u=np.zeros((n,n))
 v=np.zeros((n,n))
 
@@ -33,11 +33,13 @@ for i in range(n):
 uvvis=np.zeros((2*np.shape(vis)[0],np.shape(vis)[1]))
 for i in range(np.shape(uvvis)[0]/2):
     a,b,amp,phi=vis[i]
+#The first half of the array is for baselines (1,2), (1,3), ...
     uvvis[i][0]=u[a-1,b-1]
     uvvis[i][1]=v[a-1,b-1]
     uvvis[i][2]=amp
     uvvis[i][3]=phi
-    
+#The second half is for baselines (2,1), (3,1), ...
+#The (u,v) values of these have opposite sign, as does the phase    
     uvvis[i+np.shape(uvvis)[0]/2]=-u[a-1,b-1]
     uvvis[i+np.shape(uvvis)[0]/2][1]=-v[a-1,b-1]
     uvvis[i+np.shape(uvvis)[0]/2][2]=amp
@@ -76,6 +78,7 @@ def DFT(uvvis,L,M):
             I[l,m] = a*DFT_rhs(uvvis,l,m)/A(l,m)
     return I  
 
+#Takes a measured (u,v) point and locates the nearest (u,v) point on an evenly spaced grid
 def find_nearest_gridpoint(x,xlist):
 	pos=bisect_left(xlist,x)
 	if pos == 0:
@@ -89,15 +92,19 @@ def find_nearest_gridpoint(x,xlist):
         else:
         	return pos-1
 
+#Create an evenly spaced grid of visibilities to use in an inverse fft
 def uv_grid(uvvis,ugrid,vgrid):
-	gridded_visibilities = np.zeros((len(ugrid),len(vgrid)))+im*np.zeros((len(ugrid),len(vgrid)))
+	gridded_visibilities = np.zeros((len(ugrid),len(vgrid)))+im*np.zeros((len(ugrid),len(vgrid)))#visibilities will be complex
 	for i in range(np.shape(uvvis)[0]):
+		#Take the measurements,
 		umeas=uvvis[i][0]
 		vmeas=uvvis[i][1]
 		amp=uvvis[i][2]
 		phi=uvvis[i][3]
+		#Find the nearest gridpoint,
 		j=find_nearest_gridpoint(umeas,ugrid)
 		k=find_nearest_gridpoint(vmeas,vgrid)
+		#and add the visibility to that gridpoint:
 		gridded_visibilities[j][k]+=amp*np.exp(im*phi)
 	return gridded_visibilities
 
@@ -155,22 +162,28 @@ mpl.figure()
 mpl.pcolor(I)
 mpl.show()
 
+#Create a grid of u and v values to fill
 ugrid = np.linspace(-60000,60000,res)
 vgrid = np.linspace(-60000,60000,res)
 
+#Fill the grid
 Vgrid=uv_grid(uvvis,ugrid,vgrid)
 
+#Calculate intensity (which could have a small imaginary part due to numerical error)
 fftI=np.zeros(np.shape(Vgrid))+np.zeros(np.shape(Vgrid))*im
 for i in range(len(l)):
 	for j in range(len(m)):
 		fftI[i][j]=(np.fft.fftshift(np.fft.ifft2(Vgrid))[i][j]*(1-l[i]**2-m[j]**2)**0.5)/(A(l[i],m[j]))
 		
 print fftI
+
+#Plot the results (use absolute value of intensities just in case there is a small imagniary part)
 lmax=lmax/arcsec
 mmax=mmax/arcsec
 mpl.imshow(np.abs(fftI),extent=[-lmax,lmax,-mmax,mmax])
+mpl.xlabel('$l$ (arcseconds)',fontsize=20)
+mpl.ylabel('$m$ (arcseconds)',fontsize=20)
 mpl.show()
+mpl.savefig('FFT_Image.pdf')
 
-mpl.imshow(np.abs(Vgrid),extent=[-lmax,lmax,-mmax,mmax])
-mpl.show()
 

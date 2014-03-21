@@ -1,6 +1,8 @@
 import numpy as np
 from bisect import bisect_left
 import matplotlib.pyplot as mpl
+import time
+from scipy.optimize import curve_fit as fit
 
 ################
 #1. Constants
@@ -67,20 +69,20 @@ def A(l,m,sig=arcmin):
     return a*np.exp( b*(- l**2 - m**2 ) )
 
 #RHS function for Discrete FT: Sum over (u,v)
-def DFT_rhs(uvvis,l,m):
+def DFT_rhs(uvvis,_l,_m):
     rhs = 0.0
     for (u,v,A,phi) in uvvis:
-        rhs += A*np.exp(im*phi)*np.exp(2*pi*im*(u*l + v*m) )
-	rhs += A*np.exp(-im*phi)*np.exp(-2*pi*im*(u*l + v*m) )
+        rhs += A*np.exp(im*phi)*np.exp(2*pi*im*(u*_l + v*_m) )
+	rhs += A*np.exp(-im*phi)*np.exp(-2*pi*im*(u*_l + v*_m) )
     return rhs
     
 #Returns intensity array I(l,m) using DFT_rhs
 def DFT(uvvis,L,M):
     I = np.zeros( (len(L),len(M)) ) + im*np.zeros( (len(L),len(M)) ) 
-    for i,l in enumerate(L):
-        for j,m in enumerate(M):
-            a = np.sqrt( 1 - l**2 - m**2 )
-            I[i,j] = DFT_rhs(uvvis,l,m)#(a/A(l,m))*DFT_rhs(uvvis,l,m)
+    for i,_l in enumerate(L):
+        for j,_m in enumerate(M):
+            a = np.sqrt( 1 - _l**2 - _m**2 )
+            I[i,j] = (a/A(_l,_m))*DFT_rhs(uvvis,_l,_m)
     return I  
 
 #Takes a measured (u,v) point and locates the nearest (u,v) point on an evenly spaced grid
@@ -177,8 +179,10 @@ def part_one(N,order,l,m,lmax,mmax):
     uvvis_cropped = np.zeros( (len(rows),vis.shape[1]) )
     for i in range(len(rows)): uvvis_cropped[i] = uvvis[rows[i]]
 
-    #Get intensity using cropped array 
-    dftI = DFT(uvvis_cropped,l,m)    
+    #Get intensity using cropped array
+    #t0 = time.clock()
+    dftI = DFT(uvvis_cropped,l,m)
+    #t = time.clock()-t0 
 
     #Plot results
     lmax=lmax/arcsec
@@ -189,10 +193,26 @@ def part_one(N,order,l,m,lmax,mmax):
     mpl.ylabel('$m (arcseconds)$',fontsize=20)
     mpl.savefig("DFT_image_%i%s.pdf" % (N,imstring))
     mpl.show()
+    
+    return t
 
-part_one(10,'asc',l,m,lmax,mmax)
-part_one(10,'desc',l,m,lmax,mmax)
-
+#TIMING: UNCOMMENT TO USE
+#def quad(x,a,b,c): return a*x**2 + b*x + c #define a linear function for fitting
+#NN = np.array( [2,4,6,8,10,20] ) #Values of N to time
+#TT = np.zeros(len(NN))
+#for i,N in enumerate(NN):
+#    TT[i] = part_one(N,'asc',l,m,lmax,mmax) #Store time taken to run
+#    print N,TT[i]   
+#a,b,c = fit( quad, NN, TT )[0] #Fit quadratic to data
+#NN_sm = np.linspace(NN[0],NN[-1],100) #Create smoothed domain
+#mpl.figure()
+#mpl.plot(NN,TT,'ko')
+#mpl.plot(NN_sm,quad(NN_sm,a,b,c),'r-',label=r"$%.2fx^{2} + %.2fx + %.2f$" % (a,b,c))
+#mpl.xlabel("$t$")
+#mpl.ylabel("$N$")
+#mpl.legend()
+#mpl.savefig("DFT_image_timing.pdf")
+#mpl.show()
 
 
 #############################################

@@ -63,8 +63,8 @@ def A(l,m,sig=arcmin):
 def DFT_rhs(uvvis,l,m):
     rhs = 0.0
     for (u,v,A,phi) in uvvis:
-        V = A*np.exp(im*phi)
-        rhs += V*np.exp(2*pi*im*(u*l + v*m) )
+        rhs += A*np.exp(im*phi)*np.exp(2*pi*im*(u*l + v*m) )
+	rhs += A*np.exp(-im*phi)*np.exp(-2*pi*im*(u*l + v*m) )
     return rhs
     
 #Returns intensity array I(l,m) using DFT_rhs
@@ -139,7 +139,7 @@ def get_selection(pos,vis,N,orderby='asc'):
             rows.append(ind)
 
     #Return the indices of these rows 
-    return rows
+    return rows,r_sorted
 
 ##############################################
 #PART 1.1: DFT USING 10 CLOSEST ANTENNAE
@@ -148,8 +148,17 @@ order = 'asc'
 N=10
 
 #Get rows to use from uvvis
-rows = get_selection(pos,vis,N,order) 
+rows,r_sorted = get_selection(pos,vis,N,order) 
 L = len(rows)
+
+indices = r_sorted[0:N,0]
+
+mpl.figure()
+mpl.plot( 0.,0.,'bx')
+mpl.plot( pos[:,1], pos[:,2], 'ko' )
+for x in indices:
+    mpl.plot(pos[int(x-1),1],pos[int(x-1),2],'ro')
+mpl.savefig("closestantennae.pdf")
 
 #Create cropped selection of uvvis using only 10 closest antennae
 uvvis_cropped = np.zeros( (L,vis.shape[1]) )
@@ -172,11 +181,21 @@ mpl.show()
 #PART 1.2: DFT USING 10 FARTHEST ANTENNAE
 #############################################
 order = 'desc'
-N=10
 
 #Get rows to use from uvvis
-rows = get_selection(pos,vis,N,order) 
+rows,r_sorted = get_selection(pos,vis,N,order) 
 L = len(rows)
+
+indices = r_sorted[-N:,0]
+
+print r_sorted[0:N]
+
+mpl.figure()
+mpl.plot( 0.,0.,'bx')
+mpl.plot( pos[:,1], pos[:,2], 'ko' )
+for x in indices:
+    mpl.plot(pos[int(x-1),1],pos[int(x-1),2],'ro')
+mpl.savefig("farthestantennae.pdf")
 
 #Create cropped selection of uvvis using only 10 farthest antennae
 uvvis_cropped = np.zeros( (L,vis.shape[1]) )
@@ -192,7 +211,6 @@ mpl.xlabel('$l (arcseconds)$',fontsize=20)
 mpl.ylabel('$m (arcseconds)$',fontsize=20)
 mpl.savefig("DFT_image_10farthest.pdf")
 mpl.show()
-
 
 #############################################
 #PART 2: FFT
@@ -216,7 +234,7 @@ for i in range(len(l)):
 mpl.imshow(np.abs(fftI),extent=[-lmax,lmax,-mmax,mmax])
 mpl.xlabel('$l$ (arcseconds)',fontsize=20)
 mpl.ylabel('$m$ (arcseconds)',fontsize=20)
-mpl.show()
 mpl.savefig('FFT_Image.pdf')
+mpl.show()
 
 

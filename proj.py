@@ -2,23 +2,28 @@ import numpy as np
 from bisect import bisect_left
 import matplotlib.pyplot as mpl
 
+################
 #1. Constants
+################
 lam = 1 #Wavelength: 1cm
 arcmin = (1.0/60.0)*(np.pi/180.0) #1 arc minute in radians
 arcsec = arcmin/60.0
 im = 1j
 pi = np.pi
 
+################
 #2. Load Data
+################
 vis = np.loadtxt("Visibilities.csv",delimiter=',') #visibilities ( (i,j,A,phi) )
 pos = np.loadtxt("AntennaPositions.csv",delimiter=',') #positions ( (x,y) )
 
+##########################
 #3. Create derived data
+##########################
 n = pos.shape[0] #Store total number of antennae
 nbas=n*(n-1)/2. #Calculate the number of independent baselines
 u=np.zeros((n,n))
 v=np.zeros((n,n))
-
 for i in range(n):
     for j in range(n):       
         #Get antennae positions
@@ -27,8 +32,7 @@ for i in range(n):
         #Get wavelength-calibrated baseline vector
         u[i][j] = (xi - xj)/lam
         v[i][j] = (yi - yj)/lam
-        
-        
+            
 #Create array of form (u,v,A,phi)
 uvvis=np.zeros((2*np.shape(vis)[0],np.shape(vis)[1]))
 for i in range(np.shape(uvvis)[0]/2):
@@ -45,13 +49,15 @@ for i in range(np.shape(uvvis)[0]/2):
     uvvis[i+np.shape(uvvis)[0]/2][2]=amp
     uvvis[i+np.shape(uvvis)[0]/2][3]=-phi
 
-#3.2 Angular Ranges (l,m)
+#Angular Ranges (l,m)
 lmax,mmax = 100*arcsec,100*arcsec #Span to +/- 100'' 
 res = 1e2 #Resolution
 l = np.linspace(-lmax,lmax,res) #RA from zenith
 m = np.linspace(-mmax,mmax,res) #DEC from zenith
 
+##########################
 #4. Method definitions
+##########################
 
 #Gaussian function for Antenna Beam A(l,m)
 def A(l,m,sig=arcmin):
@@ -92,7 +98,8 @@ def find_nearest_gridpoint(x,xlist):
 
 #Create an evenly spaced grid of visibilities to use in an inverse fft
 def uv_grid(uvvis,ugrid,vgrid):
-	gridded_visibilities = np.zeros((len(ugrid),len(vgrid)))+im*np.zeros((len(ugrid),len(vgrid)))#visibilities will be complex
+    #visibilities will be complex
+	gridded_visibilities = np.zeros((len(ugrid),len(vgrid)))+im*np.zeros((len(ugrid),len(vgrid)))
 	for i in range(np.shape(uvvis)[0]):
 		#Take the measurements,
 		umeas=uvvis[i][0]
@@ -107,7 +114,6 @@ def uv_grid(uvvis,ugrid,vgrid):
 	return gridded_visibilities
 
     
-
 #Return indices of rows in uvvis which only use N closest/farthest antennae
 def get_selection(pos,vis,N,orderby='asc'):
 
@@ -139,32 +145,33 @@ def get_selection(pos,vis,N,orderby='asc'):
             rows.append(ind)
 
     #Return the indices of these rows 
-    return rows,r_sorted
+    return rows,antennae
+
+
 
 ##############################################
-#PART 1.1: DFT USING 10 CLOSEST ANTENNAE
+#MAIN 1.1: DFT USING 10 CLOSEST ANTENNAE
 ##############################################
-order = 'asc'
-N=10
 
-#Get rows to use from uvvis
-rows,r_sorted = get_selection(pos,vis,N,order) 
-L = len(rows)
+#Parameters
+order = 'asc' #Ascending order (distance to center)
+N=10 #Select 10 antennae
 
-indices = r_sorted[0:N,0]
+#Get uvvis rows and indices of chosen antennae
+rows,antennae = get_selection(pos,vis,N,order) 
 
+#Plot positions of antennae being used
 mpl.figure()
 mpl.plot( 0.,0.,'bx')
 mpl.plot( pos[:,1], pos[:,2], 'ko' )
-for x in indices:
-    mpl.plot(pos[int(x-1),1],pos[int(x-1),2],'ro')
+for x in antennae: mpl.plot(pos[int(x-1),1],pos[int(x-1),2],'ro')
 mpl.savefig("closestantennae.pdf")
 
-#Create cropped selection of uvvis using only 10 closest antennae
+#Create cropped selection of uvvis using only the selected antennae
 uvvis_cropped = np.zeros( (L,vis.shape[1]) )
-for i in range(L): uvvis_cropped[i] = uvvis[rows[i]]
+for i in range(len(rows)): uvvis_cropped[i] = uvvis[rows[i]]
 
-#Get intensity array using UVIS 
+#Get intensity using cropped array 
 dftI = DFT(uvvis_cropped,l,m)    
 
 #Plot results
@@ -178,30 +185,27 @@ mpl.savefig("DFT_image_10closest.pdf")
 mpl.show()
 
 #############################################
-#PART 1.2: DFT USING 10 FARTHEST ANTENNAE
+#MAIN 1.2: DFT USING 10 FARTHEST ANTENNAE
 #############################################
-order = 'desc'
+
+#Parameters
+order = 'desc' #Descending order (distance to center)
 
 #Get rows to use from uvvis
-rows,r_sorted = get_selection(pos,vis,N,order) 
-L = len(rows)
+rows,antennae = get_selection(pos,vis,N,order) 
 
-indices = r_sorted[-N:,0]
-
-print r_sorted[0:N]
-
+#Plot positions of antennae being used
 mpl.figure()
 mpl.plot( 0.,0.,'bx')
 mpl.plot( pos[:,1], pos[:,2], 'ko' )
-for x in indices:
-    mpl.plot(pos[int(x-1),1],pos[int(x-1),2],'ro')
+for x in antennae: mpl.plot(pos[int(x-1),1],pos[int(x-1),2],'ro')
 mpl.savefig("farthestantennae.pdf")
 
-#Create cropped selection of uvvis using only 10 farthest antennae
+#Create cropped selection of uvvis using only selected antennae
 uvvis_cropped = np.zeros( (L,vis.shape[1]) )
 for i in range(L): uvvis_cropped[i] = uvvis[rows[i]]
 
-#Get intensity array using cropped array  
+#Get intensity using cropped array  
 dftI = DFT(uvvis_cropped,l,m)   
 
 #Plot results
@@ -213,7 +217,7 @@ mpl.savefig("DFT_image_10farthest.pdf")
 mpl.show()
 
 #############################################
-#PART 2: FFT
+#MAIN 2: FFT
 #############################################
 
 #Create a grid of u and v values to fill

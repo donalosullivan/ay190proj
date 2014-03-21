@@ -10,6 +10,7 @@ arcmin = (1.0/60.0)*(np.pi/180.0) #1 arc minute in radians
 arcsec = arcmin/60.0
 im = 1j
 pi = np.pi
+meter = 100
 
 ################
 #2. Load Data
@@ -79,7 +80,7 @@ def DFT(uvvis,L,M):
     for i,l in enumerate(L):
         for j,m in enumerate(M):
             a = np.sqrt( 1 - l**2 - m**2 )
-            I[i,j] = (a/A(l,m))*DFT_rhs(uvvis,l,m)
+            I[i,j] = DFT_rhs(uvvis,l,m)#(a/A(l,m))*DFT_rhs(uvvis,l,m)
     return I  
 
 #Takes a measured (u,v) point and locates the nearest (u,v) point on an evenly spaced grid
@@ -144,77 +145,55 @@ def get_selection(pos,vis,N,orderby='asc'):
         if ant_dic.has_key(i) and ant_dic.has_key(j):
             rows.append(ind)
 
+    antennae_int = np.array( [ int(antennae[i]) for i in range(N) ] ) #Cast to ints
     #Return the indices of these rows 
-    return rows,antennae
+    return rows,antennae_int
 
 
 
 ##############################################
-#MAIN 1.1: DFT USING 10 CLOSEST ANTENNAE
+#MAIN 1: DFT
 ##############################################
+def part_one(N,order,l,m,lmax,mmax):
 
-#Parameters
-order = 'asc' #Ascending order (distance to center)
-N=2 #Select 10 antennae
+    if order=='asc': imstring="closest"
+    elif order=='desc': imstring="farthest"
+    else:
+        print "Error: order must be 'asc' or 'desc'"  
 
-#Get uvvis rows and indices of chosen antennae
-rows,antennae = get_selection(pos,vis,N,order) 
+    #Get uvvis rows and indices of chosen antennae
+    rows,antennae = get_selection(pos,vis,N,order) 
 
-#Plot positions of antennae being used
-mpl.figure()
-mpl.plot( 0.,0.,'bx')
-mpl.plot( pos[:,1], pos[:,2], 'ko' )
-for x in antennae: mpl.plot(pos[int(x-1),1],pos[int(x-1),2],'ro')
-mpl.savefig("%i_closestantennae.pdf" % N)
+    #Plot positions of antennae being used
+    mpl.figure()
+    mpl.plot( pos[:,1]/meter, pos[:,2]/meter, 'k.',label="inactive antennae")
+    mpl.plot(pos[antennae-1,1]/meter,pos[antennae-1,2]/meter,'ro',label="active antennae")
+    mpl.xlabel('$x [m]$',fontsize=20)
+    mpl.ylabel('$y [m]$',fontsize=20)
+    mpl.legend()
+    mpl.savefig("%i_%santennae.pdf" % (N,imstring))
 
-#Create cropped selection of uvvis using only the selected antennae
-uvvis_cropped = np.zeros( (len(rows),vis.shape[1]) )
-for i in range(len(rows)): uvvis_cropped[i] = uvvis[rows[i]]
+    #Create cropped selection of uvvis using only the selected antennae
+    uvvis_cropped = np.zeros( (len(rows),vis.shape[1]) )
+    for i in range(len(rows)): uvvis_cropped[i] = uvvis[rows[i]]
 
-#Get intensity using cropped array 
-dftI = DFT(uvvis_cropped,l,m)    
+    #Get intensity using cropped array 
+    dftI = DFT(uvvis_cropped,l,m)    
 
-#Plot results
-lmax=lmax/arcsec
-mmax=mmax/arcsec
-mpl.figure()
-mpl.imshow(np.abs(dftI),extent=[-lmax,lmax,-mmax,mmax])
-mpl.xlabel('$l (arcseconds)$',fontsize=20)
-mpl.ylabel('$m (arcseconds)$',fontsize=20)
-mpl.savefig("DFT_image_10closest.pdf")
-mpl.show()
+    #Plot results
+    lmax=lmax/arcsec
+    mmax=mmax/arcsec
+    mpl.figure()
+    mpl.imshow(np.abs(dftI),extent=[-lmax,lmax,-mmax,mmax])
+    mpl.xlabel('$l (arcseconds)$',fontsize=20)
+    mpl.ylabel('$m (arcseconds)$',fontsize=20)
+    mpl.savefig("DFT_image_%i%s.pdf" % (N,imstring))
+    mpl.show()
 
-#############################################
-#MAIN 1.2: DFT USING 10 FARTHEST ANTENNAE
-#############################################
+part_one(10,'asc',l,m,lmax,mmax)
+part_one(10,'desc',l,m,lmax,mmax)
 
-#Parameters
-order = 'desc' #Descending order (distance to center)
 
-#Get rows to use from uvvis
-rows,antennae = get_selection(pos,vis,N,order) 
-
-#Plot positions of antennae being used
-mpl.figure()
-mpl.plot( 0.,0.,'bx')
-mpl.plot( pos[:,1], pos[:,2], 'ko' )
-for x in antennae: mpl.plot(pos[int(x-1),1],pos[int(x-1),2],'ro')
-mpl.savefig("%i_farthestantennae.pdf" % N)
-
-#Create cropped selection of uvvis using only selected antennae
-uvvis_cropped = np.zeros( (len(rows),vis.shape[1]) )
-for i in range(L): uvvis_cropped[i] = uvvis[rows[i]]
-
-#Get intensity using cropped array  
-dftI = DFT(uvvis_cropped,l,m)   
-
-#Plot results
-mpl.figure()
-mpl.imshow(np.abs(dftI),extent=[-lmax,lmax,-mmax,mmax])
-mpl.xlabel('$l (arcseconds)$',fontsize=20)
-mpl.ylabel('$m (arcseconds)$',fontsize=20)
-mpl.savefig("DFT_image_10farthest.pdf")
-mpl.show()
 
 #############################################
 #MAIN 2: FFT

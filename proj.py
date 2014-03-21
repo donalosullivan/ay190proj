@@ -155,7 +155,7 @@ def get_selection(pos,vis,N,orderby='asc'):
 
 #Parameters
 order = 'asc' #Ascending order (distance to center)
-N=10 #Select 10 antennae
+N=2 #Select 10 antennae
 
 #Get uvvis rows and indices of chosen antennae
 rows,antennae = get_selection(pos,vis,N,order) 
@@ -165,10 +165,10 @@ mpl.figure()
 mpl.plot( 0.,0.,'bx')
 mpl.plot( pos[:,1], pos[:,2], 'ko' )
 for x in antennae: mpl.plot(pos[int(x-1),1],pos[int(x-1),2],'ro')
-mpl.savefig("closestantennae.pdf")
+mpl.savefig("%i_closestantennae.pdf" % N)
 
 #Create cropped selection of uvvis using only the selected antennae
-uvvis_cropped = np.zeros( (L,vis.shape[1]) )
+uvvis_cropped = np.zeros( (len(rows),vis.shape[1]) )
 for i in range(len(rows)): uvvis_cropped[i] = uvvis[rows[i]]
 
 #Get intensity using cropped array 
@@ -199,10 +199,10 @@ mpl.figure()
 mpl.plot( 0.,0.,'bx')
 mpl.plot( pos[:,1], pos[:,2], 'ko' )
 for x in antennae: mpl.plot(pos[int(x-1),1],pos[int(x-1),2],'ro')
-mpl.savefig("farthestantennae.pdf")
+mpl.savefig("%i_farthestantennae.pdf" % N)
 
 #Create cropped selection of uvvis using only selected antennae
-uvvis_cropped = np.zeros( (L,vis.shape[1]) )
+uvvis_cropped = np.zeros( (len(rows),vis.shape[1]) )
 for i in range(L): uvvis_cropped[i] = uvvis[rows[i]]
 
 #Get intensity using cropped array  

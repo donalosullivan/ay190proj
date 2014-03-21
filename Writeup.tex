@@ -85,6 +85,36 @@ single array, \texttt{uvvis}.
 
 
 \section{Imaging with an FFT}
+Python's built-in FFT and inverse-FFT functions expect the input 
+to be on an evenly spaced grid.  So to form an image from the 
+measured visibilities using an FFT, we first had to place the 
+visibilities on such a grid.  We created a 100$\times$100 grid in 
+the $(u,v)$ plane.  For each measured $u$ and $v$ value, we found the 
+grid $u$ and $v$ it was closest to using Python's \texttt{bisect\_left} 
+function.  This function returns the location of where a given value 
+would be inserted in a sorted array.  So, given a measured $u$ or $v$, 
+the closest grid $u$ or $v$ is one of the elements on either side of 
+where the measured value would be inserted in the grid.  Subtracting the 
+measured value from each of these two elements gives which grid element 
+element is closest.  Once each measured $(u,v)$ is assigned to a 
+gridpoint in this way, the visibility at each gridpoint is defined 
+to be the sum of all the measured visibilities assigned to that gridpoint.
+
+The gridded visibilities are then use to form an image.  From Equation 
+\ref{eq:vis2}, it is easy to see that intensity is given by:
+\begin{equation}
+I(l,m)=\frac{\hat{\mathcal{V}}(l,m)\sqrt{1-l^2-m^2}}{A(l,m)},
+\end{equation}
+where $\hat{\mathcal{V}}(l,m)$ is the inverse-FFT of the gridded 
+visibilities.  The resulting image is shown in Figure \ref{fig:fft}.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.5\textwidth]{FFT_Image.pdf}
+\caption{Image created with an FFT using all 256 antennae.}
+\label{fig:fft}
+\end{figure}
+
 
 \section{Discussion}
 

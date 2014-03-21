@@ -45,8 +45,6 @@ for i in range(np.shape(uvvis)[0]/2):
     uvvis[i+np.shape(uvvis)[0]/2][2]=amp
     uvvis[i+np.shape(uvvis)[0]/2][3]=-phi
 
-print uvvis.shape
-
 #3.2 Angular Ranges (l,m)
 lmax,mmax = 100*arcsec,100*arcsec #Span to +/- 100'' 
 res = 1e2 #Resolution
@@ -63,19 +61,19 @@ def A(l,m,sig=arcmin):
 
 #RHS function for Discrete FT: Sum over (u,v)
 def DFT_rhs(uvvis,l,m):
-    rhs = 0
+    rhs = 0.0
     for (u,v,A,phi) in uvvis:
         V = A*np.exp(im*phi)
-        rhs += V*np.exp(-2*pi*im*(u*l + v*m) )
+        rhs += V*np.exp(2*pi*im*(u*l + v*m) )
     return rhs
     
 #Returns intensity array I(l,m) using DFT_rhs
 def DFT(uvvis,L,M):
-    I = np.zeros( (len(L),len(M)) )
-    for l in L:
-        for m in M:
+    I = np.zeros( (len(L),len(M)) ) + im*np.zeros( (len(L),len(M)) ) 
+    for i,l in enumerate(L):
+        for j,m in enumerate(M):
             a = np.sqrt( 1 - l**2 - m**2 )
-            I[l,m] = a*DFT_rhs(uvvis,l,m)/A(l,m)
+            I[i,j] = (a/A(l,m))*DFT_rhs(uvvis,l,m)
     return I  
 
 #Takes a measured (u,v) point and locates the nearest (u,v) point on an evenly spaced grid
@@ -142,8 +140,10 @@ def get_selection(pos,vis,N,orderby='asc'):
 
     #Return the indices of these rows 
     return rows
-    
-#Input parameters  
+
+##############################################
+#PART 1.1: DFT USING 10 CLOSEST ANTENNAE
+##############################################
 order = 'asc'
 N=10
 
@@ -151,16 +151,52 @@ N=10
 rows = get_selection(pos,vis,N,order) 
 L = len(rows)
 
-#Create cropped selection of uvvis
+#Create cropped selection of uvvis using only 10 closest antennae
 uvvis_cropped = np.zeros( (L,vis.shape[1]) )
-for i in range(L):
-    uvvis_cropped[i] = uvvis[rows[i]]
+for i in range(L): uvvis_cropped[i] = uvvis[rows[i]]
 
-I = DFT(uvvis_cropped,l,m) #Get intensity array using UVIS    
+#Get intensity array using UVIS 
+dftI = DFT(uvvis_cropped,l,m)    
 
+#Plot results
+lmax=lmax/arcsec
+mmax=mmax/arcsec
 mpl.figure()
-mpl.pcolor(I)
+mpl.imshow(np.abs(dftI),extent=[-lmax,lmax,-mmax,mmax])
+mpl.xlabel('$l (arcseconds)$',fontsize=20)
+mpl.ylabel('$m (arcseconds)$',fontsize=20)
+mpl.savefig("DFT_image_10closest.pdf")
 mpl.show()
+
+#############################################
+#PART 1.2: DFT USING 10 FARTHEST ANTENNAE
+#############################################
+order = 'desc'
+N=10
+
+#Get rows to use from uvvis
+rows = get_selection(pos,vis,N,order) 
+L = len(rows)
+
+#Create cropped selection of uvvis using only 10 farthest antennae
+uvvis_cropped = np.zeros( (L,vis.shape[1]) )
+for i in range(L): uvvis_cropped[i] = uvvis[rows[i]]
+
+#Get intensity array using cropped array  
+dftI = DFT(uvvis_cropped,l,m)   
+
+#Plot results
+mpl.figure()
+mpl.imshow(np.abs(dftI),extent=[-lmax,lmax,-mmax,mmax])
+mpl.xlabel('$l (arcseconds)$',fontsize=20)
+mpl.ylabel('$m (arcseconds)$',fontsize=20)
+mpl.savefig("DFT_image_10farthest.pdf")
+mpl.show()
+
+
+#############################################
+#PART 2: FFT
+#############################################
 
 #Create a grid of u and v values to fill
 ugrid = np.linspace(-60000,60000,res)
@@ -175,11 +211,8 @@ for i in range(len(l)):
 	for j in range(len(m)):
 		fftI[i][j]=(np.fft.fftshift(np.fft.ifft2(Vgrid))[i][j]*(1-l[i]**2-m[j]**2)**0.5)/(A(l[i],m[j]))
 		
-print fftI
 
 #Plot the results (use absolute value of intensities just in case there is a small imagniary part)
-lmax=lmax/arcsec
-mmax=mmax/arcsec
 mpl.imshow(np.abs(fftI),extent=[-lmax,lmax,-mmax,mmax])
 mpl.xlabel('$l$ (arcseconds)',fontsize=20)
 mpl.ylabel('$m$ (arcseconds)',fontsize=20)

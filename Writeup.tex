@@ -36,12 +36,44 @@ Date: \today
 \end{center}
 
 \section{Introduction}
+Radio interferometers allow information from multiple radio antennae to be 
+combined, giving the interferometer as a whole much greater resolution than 
+a single dish on its own.  Because radio telescopes measure the incoming 
+electric field itself (as a voltage), instead of just its intensity, the 
+amplitude and phase of the electric field is preserved.  In an array, the 
+time-averaged product of the voltages measured by each pair of antennae is 
+reported as a \emph{visibility}.  Between antennas $i$ and $j$, the 
+visibility is defined as:
+
+\begin{equation}\label{eq:vis}
+\mathcal{V}=\int_{4\pi} \! A(\hat{r})I(\hat{r})e^{-2\pi i\nu\vec{B}\cdot\hat{r}/c} \, \mathrm{d}\Omega,
+\end{equation} 
+
+where $A$ is the beam pattern of an individual antenna (in this case, a Gaussian 
+with $\sigma$=1 arcmin), $I$ is the intensity 
+of the sky, $\nu$ is the frequency of the radiation, $\vec{B}$ is the baseline 
+vector between $i$ and $j$ ($\vec{r_i}-\vec{r_j}$), and $\hat{r}$ is the 
+direction along the line of sight.  In the limit of a narrow field of view, 
+Equation \ref{eq:vis} can be rewritten using a change of variables as: 
+
+\begin{equation}\label{eq:vis2}
+\mathcal{V}(u,v)=\int_{-\infty}^{\infty} \! \int_{-\infty}^{\infty} \! \frac{A(l,m)I(l,m)}{\sqrt{1-l^2-m^2}}e^{-2\pi i(ul+vm)} \, \mathrm{d}l \, \mathrm{d}m,
+\end{equation}
+where $(u,v)$ is the baseline vector between the two antennae in units of 
+wavelengths and $l$ and $m$ are the angles (in radians) on the sky relative 
+to the line of sight.  Equation \ref{eq:vis2} is simply a two-dimensional 
+Fourier transform.  Thus, an image of the intensity pattern on the sky can 
+be generated from the inverse Fourier transform of the measured visibilities.  
+
+\section{Setup}
 
 
 \section{Imaging with a DFT}
 
 
 \section{Imaging with an FFT}
+
+\section{Discussion}
 
 
 \end{document}

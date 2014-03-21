@@ -18,6 +18,8 @@
 % comfort package to easily set margins
 \usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
 
+\usepackage{courier}
+
 % control some spacings
 %
 % spacing after a paragraph
@@ -66,7 +68,18 @@ Fourier transform.  Thus, an image of the intensity pattern on the sky can
 be generated from the inverse Fourier transform of the measured visibilities.  
 
 \section{Setup}
-
+For this project, Michael provided us with a list of antenna positions and a 
+list of the amplitude and phase of the visibility for each antenna pair, such 
+that the visibility is defined as:
+\begin{equation}
+\mathcal{V}=Ae^{i\phi}.
+\end{equation}
+After reading in these files, our first step was to turn the antenna positions 
+into $(u,v)$ baseline vectors, which we did by dividing the difference in 
+$x$ and $y$ positions for each antenna pair by the wavelength of the 
+observations (1 cm).  We then combined the $(u,v)$ baselines for 
+each pair of antennas with the corresponding visibilities into a 
+single array, \texttt{uvvis}.
 
 \section{Imaging with a DFT}
 

@@ -161,5 +161,28 @@ runs much more quickly than the DFT.}
 \label{fig:FFTtime}
 \end{figure}
 
+\subsection{Gridding}
+One of the key steps in performing an FFT of the visibilities is gridding.  
+For this project, by adding all measured visibilities to the gridpoints 
+to which they were assigned, we are giving equal weighting to each 
+measured visibility.  This seems like a natural thing to do, but it 
+does introduce possible problems.  If the radio array provides 
+non-uniform $(u,v)$ coverage, extra weight will be given to 
+certain gridpoints just because they have more measured 
+visibilities around them.  For example, the Owens Valley LWA 
+has 256 antennae within a 200 meter radius, providing over 
+30,000 relatively short baselines.  To increase angular 
+resolution, a few new antennae are being built with baselines 
+of 2 km.  If equal weighting were given to all measured visibilities, 
+the few long baselines would be completely dominated by the 30,000 
+shorter baselines, negating the increased resolution.  One way around 
+this problem is to build additional antennae to more uniformly cover the 
+$(u,v)$ plane.  However, this is often expensive and impractical, so instead, 
+the visibilities from the shorter baselines can be given less weight than 
+ones from the longer baselines.  This allows the longer baselines to 
+increase the resolution of the array, but decreases its overall 
+sensitivity due to the contribution of so many visibilities being decreased.
+
+
 \end{document}
 

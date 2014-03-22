@@ -226,56 +226,47 @@ def time_part_one():
 #MAIN 2: FFT
 #############################################
 
-def part_two(N,order,l,m):
-
-    lmax,mmax = l[0],m[0]
-    
-    #Create a grid of u and v values to fill
+def part_two():
+#Create a grid of u and v values to fill
     ugrid = np.linspace(-60000,60000,res)
     vgrid = np.linspace(-60000,60000,res)
 
-    #Redefine uvvis_cropped
-    rows,antennae = get_selection(pos,vis,N,order) 
-    uvvis_cropped = np.zeros( (len(rows),vis.shape[1]) )
-    for i in range(len(rows)): uvvis_cropped[i] = uvvis[rows[i]]
-    
-    t0 = time.clock()
-    #Fill the grid
+#Fill the grid
     Vgrid=uv_grid(uvvis_cropped,ugrid,vgrid)
 
-    #Calculate intensity (which could have a small imaginary part due to numerical error)
+#Calculate intensity (which could have a small imaginary part due to numerical error)
     fftI=np.zeros(np.shape(Vgrid))+np.zeros(np.shape(Vgrid))*im
 
-    #fftshift is used because the output of ifft2 is ordered in a non-intuitive way for plotting
-    #fftshift fixes this
+#fftshift is used because the output of ifft2 is ordered in a non-intuitive way for plotting
+#fftshift fixes this
     for i in range(len(l)):
         for j in range(len(m)):
             fftI[i][j]=(np.fft.fftshift(np.fft.ifft2(Vgrid))[i][j]*(1-l[i]**2-m[j]**2)**0.5)/(A(l[i],m[j]))
-    t = time.clock()-t0
+    return fftI
 
-    #Plot the results (use absolute value of intensities just in case there is a small imaginary part)
-    #lmax=lmax/arcsec #Convert lmax and mmax back to arcseconds for plotting purposes
-    #mmax=mmax/arcsec
-    #mpl.imshow(np.abs(fftI),extent=[-lmax,lmax,-mmax,mmax])
-    #mpl.xlabel('$l$ (arcseconds)',fontsize=20)
-    #mpl.ylabel('$m$ (arcseconds)',fontsize=20)
-    #mpl.savefig('FFT_Image.pdf')
-    #mpl.show()
-    
-    return t
+N=256 #Use all the antennae to make the image
 
+#Redefine uvvis_cropped, which will be used inside part_two()
+rows,antennae = get_selection(pos,vis,N,order) 
+uvvis_cropped = np.zeros( (len(rows),vis.shape[1]) )
+for i in range(len(rows)): uvvis_cropped[i] = uvvis[rows[i]]
 
 #Calculate the intensities
-#part_two(256,'asc',l,m)
+fftI=part_two()
 
+#Plot the results (use absolute value of intensities just in case there is a small imagniary part)
+lmax=lmax/arcsec#Convert lmax and mmax back to arcseconds for plotting purposes
+mmax=mmax/arcsec
+mpl.imshow(np.abs(fftI),extent=[-lmax,lmax,-mmax,mmax])
+mpl.xlabel('$l$ (arcseconds)',fontsize=20)
+mpl.ylabel('$m$ (arcseconds)',fontsize=20)
+mpl.savefig('FFT_Image.pdf')
+mpl.show()
 
 #FFT TIMING: 
 def nlogn(x,a,c): return a*x*np.log10(x)+c #define a nlog(n) function for fitting
-NN = np.array( [2,4,6,8,10,20] ) #Values of N to time
+NN = np.array( [50,100,150,200,250] ) #Values of N to time
 TT = np.zeros(len(NN))
-
-
-
 
 for i in range(len(NN)):
 #Redifine uvvis_cropped with the number of antennae desired for timing
@@ -287,8 +278,6 @@ for i in range(len(NN)):
 #Time the FFT routine
     TT[i]=timeit.timeit('part_two()',setup='from proj import part_two',number=1)
     print NN[i],TT[i]
-   
-
 
 #Fit an NlogN trend to the timings
 a,c = fit( nlogn, NN, TT )[0]

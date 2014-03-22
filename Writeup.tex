@@ -159,7 +159,7 @@ gridpoint in this way, the visibility at each gridpoint is defined
 to be the sum of all the measured visibilities assigned to that gridpoint.
 
 The gridded visibilities are then use to form an image.  From Equation 
-\ref{eq:vis2}, it is easy to see that intensity is given by:
+\ref{eq:vis3}, it is easy to see that intensity is given by:
 \begin{equation}
 I(l,m)=\frac{\hat{\mathcal{V}}(l,m)\sqrt{1-l^2-m^2}}{A(l,m)},
 \end{equation}
@@ -175,6 +175,63 @@ visibilities.  The resulting image is shown in Figure \ref{fig:fft}.
 
 
 \section{Discussion}
+\subsection{Number of Antennae}
+
+\subsection{Timing}
+To test the performance of our DFT and FFT routines, we used Python's built-in 
+timing capabilities to determine how long each routine takes for different 
+numbers of antennae $N$.  The results are shown in Figures \ref{fig:DFTtime} and 
+\ref{fig:FFTtime}.  The DFT routine has to loop through all $N(N-1)$ baselines 
+to perform the Fourier transform.  So, for large $N$, the time required to 
+run the DFT routine should go as $N^2$.  This matches what we observe.  On the 
+other hand, Python's FFT algorithm runs in $\mathcal{O}(N\log N)$ time.  Figure 
+\ref{fig:FFTtime} shows that, while there is some scatter to the fit, the time 
+to run the routine follows an $N\log N$ proportionality reasonably well.  
+The scatter may be due to small variations in the computer's performance in 
+each run (note the scale), or due the the additional step in the FFT of 
+gridding the data.  More important than the exact scaling is the fact that 
+the FFT is much faster than the DFT.  In the interest of time, we only timed 
+the DFT for up to 20 antennae.  Even using only 20 antennae, the DFT was nearly 
+five times slower than the FFT using 250 antennae.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.5\textwidth]{DFT_image_timing.pdf}
+\caption{Time (in seconds) required to run our DFT routine as a function of 
+antenna number.  As expected, $t\propto N^2$.}
+\label{fig:DFTtime}
+\end{figure}
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.5\textwidth]{FFT_image_timing.pdf}
+\caption{Time (in seconds) required to run our FFT routine as a function of 
+antenna number.  As expected, $t\propto N\log N$.  Also note that the FFT 
+runs much more quickly than the DFT.}
+\label{fig:FFTtime}
+\end{figure}
+
+\subsection{Gridding}
+One of the key steps in performing an FFT of the visibilities is gridding.  
+For this project, by adding all measured visibilities to the gridpoints 
+to which they were assigned, we are giving equal weight to each 
+measured visibility when computing the FFT.  This seems like a natural 
+thing to do, but it does introduce possible problems.  If the radio array 
+provides non-uniform $(u,v)$ coverage, extra weight will be given to 
+certain gridpoints just because they have more measured 
+visibilities around them.  For example, the Owens Valley LWA 
+has 256 antennae within a 200 meter radius, providing over 
+30,000 relatively short baselines.  To increase angular 
+resolution, a few new antennae are being built with baselines 
+of 2 km.  If equal weighting were given to all measured visibilities, 
+the few long baselines would be completely dominated by the 30,000 
+shorter baselines, negating the increased resolution.  One way around 
+this problem is to build additional antennae to more uniformly cover the 
+$(u,v)$ plane.  However, this is often expensive and impractical, so instead, 
+the visibilities from the shorter baselines can be given less weight than 
+ones from the longer baselines.  This allows the longer baselines to 
+increase the resolution of the array, but decreases its overall 
+sensitivity due to the contribution of so many visibilities being decreased.
 
 
 \end{document}

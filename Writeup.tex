@@ -168,7 +168,57 @@ visibilities.  The resulting image is shown in Figure \ref{fig:fft}.
 
 
 \section{Discussion}
-\subsection{Number of Antennae}
+\subsection{DFT Asymmetry}
+
+Two things that confused us for a while was the asymmetric form of the images
+produced by the DFT method and the higher intensities towards the corners of the image. Given that the intensity map calculated using all $256$ antennae with the FFT was symmetric and had highest readings in the center, it didn't seem to make much sense at an intuitive level. Luckily, Tony Readhead came to the the rescue! We sat down with Tony and figured it out.\\
+
+Firstly, the higher intensities at the center come from the fact that $I(l,m)$ is inversely proportional to the antenna's (Gaussian) beam, as seen in Equation ~\ref{eq:dft2}. Figure~\ref{fig:beam} shows a map of the contribution to the intensity from the antenna beam and the $a$ term from Equation~\ref{eq:a}.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.5\textwidth]{DFT_image_beam.pdf}
+\caption{ Contribution to intensity from the Gaussian antenna beams and Equation~\ref{eq:a}. }
+\label{fig:beam}
+\end{figure}
+
+This explains the high intensity at the edges; as the Gaussian drops to values near zero, the inverse of the Gaussian explodes and amplifies the intensity significantly. However, this raises two questions; (a) why don't we see this in the FFT using all 256 antennae and (b) how does the center become brighter if the beam has this shape?\\
+
+These questions are answered by considering the effects of increasing the number of antennae used. Figure \ref{fig:evolution_nobeam} shows the intensity maps produced by $2$,$4$ and $6$ antennae in the center of the array when ignoring the beam effects entirely. It is immediately clear from this where the asymmetry comes from. The low number of antennae produces a fringe pattern which is oriented in one particular direction. Because of this fringe pattern, the bottom-left and top-right corners are more intense than the top-left and bottom-right, and these corners then get amplified by the inverse Gaussian. Figure~\ref{fig:evolution_wbeam} shows the same maps with beam effects included. The next most obvious thing is that as more antennae are added, the intensity at the edges (caused by the sidelobes of the antennae) gets reduced and the signal becomes more focused on the center. What's more is that as more antennae are added, the summation term in Equation~\ref{eq:dft1} becomes larger and so the overall intensity is increased until such a point that it dominates over the inverse Gaussian term. These effects explain why we see an asymmetric edge-focused pattern when using only $10$ antennae, yet as we increase to $256$ antennae we still get the expected result.
+
+\begin{figure}[!h]
+\centerline{
+\includegraphics[width=0.5\textwidth]{2_closestantennae.pdf}
+\includegraphics[width=0.5\textwidth]{DFT_image_2closest_nobeam.pdf}
+}
+\centerline{
+\includegraphics[width=0.5\textwidth]{4_closestantennae.pdf}
+\includegraphics[width=0.5\textwidth]{DFT_image_4closest_nobeam.pdf}
+}
+\centerline{
+\includegraphics[width=0.5\textwidth]{6_closestantennae.pdf}
+\includegraphics[width=0.5\textwidth]{DFT_image_6closest_nobeam.pdf}
+}
+\caption{ Evolution of the intensity map produced by using $2$,$4$, and $6$ antennae in the center of the array, ignoring beam effects. The left hand side shows the antennae used to produce the image on the right.}
+\label{fig:evolution_nobeam}
+\end{figure}
+
+\begin{figure}[!h]
+\centerline{
+\includegraphics[width=0.5\textwidth]{2_closestantennae.pdf}
+\includegraphics[width=0.5\textwidth]{DFT_image_2closest.pdf}
+}
+\centerline{
+\includegraphics[width=0.5\textwidth]{4_closestantennae.pdf}
+\includegraphics[width=0.5\textwidth]{DFT_image_4closest.pdf}
+}
+\centerline{
+\includegraphics[width=0.5\textwidth]{6_closestantennae.pdf}
+\includegraphics[width=0.5\textwidth]{DFT_image_6closest.pdf}
+}
+\caption{ Evolution of the intensity map produced by using $2$,$4$, and $6$ antennae in the center of the array, ignoring beam effects. The left hand side shows the antennae used to produce the image on the right.}
+\label{fig:evolution_wbeam}
+\end{figure}
 
 \subsection{Timing}
 To test the performance of our DFT and FFT routines, we used Python's built-in 

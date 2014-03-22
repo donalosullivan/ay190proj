@@ -65,7 +65,11 @@ where $(u,v)$ is the baseline vector between the two antennae in units of
 wavelengths and $l$ and $m$ are the angles (in radians) on the sky relative 
 to the line of sight.  Equation \ref{eq:vis2} is simply a two-dimensional 
 Fourier transform.  Thus, an image of the intensity pattern on the sky can 
-be generated from the inverse Fourier transform of the measured visibilities.  
+be generated from the inverse Fourier transform of the measured visibilities.
+
+\begin{equation}\label{eq:vis3}
+\mathcal{I}(l,m)=\int_{-\infty}^{\infty} \! \int_{-\infty}^{\infty} \! \frac{\sqrt{1-l^2-m^2}}{A(l,m)I(l,m)}e^{2\pi i(ul+vm)} \, \mathrm{d}u \, \mathrm{d}v,
+\end{equation}  
 
 \section{Setup}
 For this project, Michael provided us with a list of antenna positions and a 
@@ -83,6 +87,10 @@ single array, \texttt{uvvis}.
 
 \section{Imaging with a DFT}
 
+Using a Discrete Fourier Transform is relatively straight forward. The discretized version of ~\ref{eq:vis3} is simply
+\begin{equation}\label{eq:vis3}
+\mathcal{I}(l,m)= \Sigma_{u} \! \Sigma_{v} \! \frac{\sqrt{1-l^2-m^2}}{A(l,m)I(l,m)}e^{2\pi i(ul+vm)} \,
+\end{equation}  
 
 \section{Imaging with an FFT}
 Python's built-in FFT and inverse-FFT functions expect the input 

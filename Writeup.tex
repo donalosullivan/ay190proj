@@ -69,7 +69,7 @@ Fourier transform.  Thus, an image of the intensity pattern on the sky can
 be generated from the inverse Fourier transform of the measured visibilities.
 
 \begin{equation}\label{eq:vis3}
-\frac{\mathcal{I}(l,m)A(l,m)}{\sqrt{1-l^2-m^2}}=\int_{-\infty}^{\infty} \! \int_{-\infty}^{\infty} \! \mathcal{V}(u,v)e^{2\pi i(ul+vm)} \, \mathrm{d}u \, \mathrm{d}v,
+\frac{I(l,m)A(l,m)}{\sqrt{1-l^2-m^2}}=\int_{-\infty}^{\infty} \! \int_{-\infty}^{\infty} \! \mathcal{V}(u,v)e^{2\pi i(ul+vm)} \, \mathrm{d}u \, \mathrm{d}v,
 \end{equation}  
 
 \section{Setup}
@@ -91,7 +91,7 @@ single array, \texttt{uvvis}.
 \subsection{Equations and Code Layout}
 Using a Discrete Fourier Transform is relatively straight forward. We compute an intensity map $I(l,m)$ using the discretized version of Equation~\ref{eq:vis3}, which is implemented by the function \texttt{DFT} in our code.
 \begin{equation}\label{eq:dft1}
-\mathcal{I}(l,m)= \frac{\sqrt{1-l^2-m^2}}{A(l,m)}\displaystyle\sum\limits_{u}  \! \displaystyle\sum\limits_{v} \! \mathcal{V}(u,v)e^{2\pi i(ul+vm)} \,
+I(l,m)= \frac{\sqrt{1-l^2-m^2}}{A(l,m)}\displaystyle\sum\limits_{u}  \! \displaystyle\sum\limits_{v} \! \mathcal{V}(u,v)e^{2\pi i(ul+vm)} \,
 \end{equation}
 
 Here, the summation is over the baselines $u$ and $v$ connecting a subset of the antennae (e.g. the $10$ closest/farthest antennae). The following definitions are used to simplify the layout of the code:
@@ -105,13 +105,13 @@ DFT_{rhs} = \displaystyle\sum\limits_{u}  \! \displaystyle\sum\limits_{v} \! \ma
 
 such that:
 \begin{equation}\label{eq:dft2}
-\mathcal{I}(l,m)= \frac{a}{A(l,m)} DFT_{rhs} \,
+I(l,m)= \frac{a}{A(l,m)} DFT_{rhs} \,
 \end{equation}
 
 Finally, the antenna beam mentioned earlier is implemented as a Gaussian with a standard deviation of $\sigma$=1 arcmin, as in Equation~\ref{eq:gauss} which is really only inserted here for reference and comparison with the code.
 
 \begin{equation}\label{eq:gauss}
-\mathcal{A}(l,m)= \frac{1}{\sigma \sqrt{\pi}} exp{ \frac{-(l^{2} + m^{2})}{2 \sigma^{2}} }
+A(l,m)= \frac{1}{\sigma \sqrt{\pi}} exp{ \frac{-(l^{2} + m^{2})}{2 \sigma^{2}} }
 \end{equation}
 
 The method \texttt{part\_one} implements this DFT construction of $I(l,m)$ for a given subset of antennae defined by the parameters \texttt{N} and \texttt{order} where \texttt{N} is the number of antennae to be used and \texttt{order} may have the values 'asc' (ascending) or 'desc' (descending); meaning that the $N$ closest/farthest antennae will be used, respectively. This selection is implemented by the method \texttt{get\_selection}, which indicates which rows of the \texttt{uvvis} array may be used given the selected antennae and also returns the indices of the antennae themselves. Once this selection is made, the rest is a straight forward implementation of Equations ~\ref{eq:dft2} and ~\ref{eq:rhs}.

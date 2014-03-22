@@ -125,7 +125,41 @@ visibilities.  The resulting image is shown in Figure \ref{fig:fft}.
 
 
 \section{Discussion}
+\subsection{Number of Antennae}
 
+\subsection{Timing}
+To test the performance of our DFT and FFT routines, we used Python's built-in 
+timing capabilities to determine how long each routine takes for different 
+numbers of antennae $N$.  The results are shown in Figures \ref{fig:DFTtime} and 
+\ref{fig:FFTtime}.  The DFT routine has to loop through all $N(N-1)$ baselines 
+to perform the Fourier transform.  So, for large $N$, the time required to 
+run the DFT routine should go as $N^2$.  This matches what we observe.  On the 
+other hand, Python's FFT algorithm runs in $\mathcal{O}(N\log N)$ time.  Figure 
+\ref{fig:FFTtime} shows that, while there is some scatter to the fit, the time 
+to run the routine follows an $N\log N$ proportionality reasonably well.  
+The scatter may be due to small variations in the computer's performance in 
+each run (note the scale), or due the the additional step in the FFT of 
+gridding the data.  More important than the exact scaling is the fact that 
+the FFT is much faster than the DFT.  In the interest of time, we only timed 
+the DFT for up to 20 antennae.  Even using only 20 antennae, the DFT was nearly 
+five times slower than the FFT using 250 antennae.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.5\textwidth]{DFT_image_timing.pdf}
+\caption{Time (in seconds) required to run our DFT routine as a function of 
+antenna number.  As expected, $t\propto N^2$.}
+\label{fig:DFTtime}
+\end{figure}
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.5\textwidth]{FFT_image_timing.pdf}
+\caption{Time (in seconds) required to run our FFT routine as a function of 
+antenna number.  As expected, $t\propto N\log N$.  Also note that the FFT 
+runs much more quickly than the DFT.}
+\label{fig:FFTtime}
+\end{figure}
 
 \end{document}
 

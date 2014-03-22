@@ -266,6 +266,8 @@ TT = np.zeros(len(NN))
 
 for i in range(len(NN)):
 #Redifine uvvis_cropped with the number of antennae desired for timing
+#This change is then reflected in uvvis_cropped within part_two()
+#This way, finding uvvis_cropped is not included in the timing of part_two()
     rows,antennae = get_selection(pos,vis,NN[i],order) 
     uvvis_cropped = np.zeros( (len(rows),vis.shape[1]) )
     for j in range(len(rows)): uvvis_cropped[j] = uvvis[rows[j]]

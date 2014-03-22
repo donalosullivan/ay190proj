@@ -114,7 +114,7 @@ Finally, the antenna beam mentioned earlier is implemented as a Gaussian with a 
 A(l,m)= \frac{1}{\sigma \sqrt{\pi}} exp{ \frac{-(l^{2} + m^{2})}{2 \sigma^{2}} }
 \end{equation}
 
-The method \texttt{part\_one} implements this DFT construction of $I(l,m)$ for a given subset of antennae defined by the parameters \texttt{N} and \texttt{order} where \texttt{N} is the number of antennae to be used and \texttt{order} may have the values 'asc' (ascending) or 'desc' (descending); meaning that the $N$ closest/farthest antennae will be used, respectively. This selection is implemented by the method \texttt{get\_selection}, which indicates which rows of the \texttt{uvvis} array may be used given the selected antennae and also returns the indices of the antennae themselves. Once this selection is made, the rest is a straight forward implementation of Equations ~\ref{eq:dft2} and ~\ref{eq:rhs}.
+The method \texttt{part\_one} implements this DFT construction of $I(l,m)$ for a given subset of antennae defined by the parameters \texttt{N} and \texttt{order} where \texttt{N} is the number of antennae to be used and \texttt{order} may have the values 'asc' (ascending) or 'desc' (descending); meaning that the $N$ closest/farthest antennae will be used, respectively. This selection is implemented by the method \texttt{get\_selection}, which indicates which rows of the \texttt{uvvis} array may be used given the selected antennae and also returns the indices of the antennae themselves. Once this selection is made, the rest is a straight forward implementation of Equations ~\ref{eq:rhs} and ~\ref{eq:dft2}.
 
 \subsection{Results}
 
@@ -145,7 +145,7 @@ grid $u$ and $v$ it was closest to using Python's \texttt{bisect\_left}
 function.  This function returns the location of where a given value 
 would be inserted in a sorted array.  So, given a measured $u$ or $v$, 
 the closest grid $u$ or $v$ is one of the elements on either side of 
-where the measured value would be inserted in the grid.  Subtracting the 
+where the measured value would be inserted into the grid.  Subtracting the 
 measured value from each of these two elements gives which grid element 
 element is closest.  Once each measured $(u,v)$ is assigned to a 
 gridpoint in this way, the visibility at each gridpoint is defined 
@@ -215,7 +215,7 @@ certain gridpoints just because they have more measured
 visibilities around them.  For example, the Owens Valley LWA 
 has 256 antennae within a 200 meter radius, providing over 
 30,000 relatively short baselines.  To increase angular 
-resolution, a few new antennae are being built with baselines 
+resolution, several new antennae are being built with baselines 
 of 2 km.  If equal weighting were given to all measured visibilities, 
 the few long baselines would be completely dominated by the 30,000 
 shorter baselines, negating the increased resolution.  One way around 

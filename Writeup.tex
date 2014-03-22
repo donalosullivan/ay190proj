@@ -182,9 +182,9 @@ Firstly, the higher intensities at the center come from the fact that $I(l,m)$ i
 \label{fig:beam}
 \end{figure}
 
-This explains the high intensity at the edges; as the Gaussian drops to values near zero, the inverse of the Gaussian explodes and amplifies the intensity significantly. However, this raises two questions; (a) why don't we see this in the FFT using all 256 antennae and (b) how does the center become brighter if the beam has this shape?\\
+This explains the high intensity at the edges: as the Gaussian drops to values near zero, the inverse of the Gaussian explodes and amplifies the intensity significantly. However, this raises two questions; (a) why don't we see this in the FFT using all 256 antennae and (b) how does the center become brighter if the beam has this shape?\\
 
-These questions are answered by considering the effects of increasing the number of antennae used. Figure \ref{fig:evolution_nobeam} shows the intensity maps produced by $2$,$4$ and $6$ antennae in the center of the array when ignoring the beam effects entirely. It is immediately clear from this where the asymmetry comes from. The low number of antennae produces a fringe pattern which is oriented in one particular direction. Because of this fringe pattern, the bottom-left and top-right corners are more intense than the top-left and bottom-right, and these corners then get amplified by the inverse Gaussian. Figure~\ref{fig:evolution_wbeam} shows the same maps with beam effects included. The next most obvious thing is that as more antennae are added, the intensity at the edges (caused by the sidelobes of the antennae) gets reduced and the signal becomes more focused on the center. What's more is that as more antennae are added, the summation term in Equation~\ref{eq:dft1} becomes larger and so the overall intensity is increased until such a point that it dominates over the inverse Gaussian term. These effects explain why we see an asymmetric edge-focused pattern when using only $10$ antennae, yet as we increase to $256$ antennae we still get the expected result.
+These questions are answered by considering the effects of increasing the number of antennae used. Figure \ref{fig:evolution_nobeam} shows the intensity maps produced by $2$, $4$, and $6$ antennae in the center of the array when ignoring the beam effects entirely. It is immediately clear from this where the asymmetry comes from. The low number of antennae produces a fringe pattern which is oriented in one particular direction. Because of this fringe pattern, the bottom-left and top-right corners are more intense than the top-left and bottom-right, and these corners then get amplified by the inverse Gaussian. Figure~\ref{fig:evolution_wbeam} shows the same maps with beam effects included. The next most obvious thing is that as more antennae are added, the intensity at the edges (caused by the sidelobes of the antennae) gets reduced and the signal becomes more focused on the center. What's more is that as more antennae are added, the summation term in Equation~\ref{eq:dft1} becomes larger and so the overall intensity is increased until such a point that it dominates over the inverse Gaussian term. These effects explain why we see an asymmetric edge-focused pattern when using only $10$ antennae, yet as we increase to $256$ antennae we still get the expected result.
 
 \begin{figure}[!h]
 \centerline{
@@ -199,7 +199,7 @@ These questions are answered by considering the effects of increasing the number
 \includegraphics[width=0.5\textwidth]{6_closestantennae.pdf}
 \includegraphics[width=0.5\textwidth]{DFT_image_6closest_nobeam.pdf}
 }
-\caption{ Evolution of the intensity map produced by using $2$,$4$, and $6$ antennae in the center of the array, ignoring beam effects. The left hand side shows the antennae used to produce the image on the right.}
+\caption{ Evolution of the intensity map produced by using $2$, $4$, and $6$ antennae in the center of the array, ignoring beam effects. The left hand side shows the antennae used to produce the image on the right.}
 \label{fig:evolution_nobeam}
 \end{figure}
 
@@ -216,7 +216,7 @@ These questions are answered by considering the effects of increasing the number
 \includegraphics[width=0.5\textwidth]{6_closestantennae.pdf}
 \includegraphics[width=0.5\textwidth]{DFT_image_6closest.pdf}
 }
-\caption{ Evolution of the intensity map produced by using $2$,$4$, and $6$ antennae in the center of the array, ignoring beam effects. The left hand side shows the antennae used to produce the image on the right.}
+\caption{ Evolution of the intensity map produced by using $2$, $4$, and $6$ antennae in the center of the array, ignoring beam effects. The left hand side shows the antennae used to produce the image on the right.}
 \label{fig:evolution_wbeam}
 \end{figure}
 
@@ -270,11 +270,13 @@ of 2 km.  If equal weighting were given to all measured visibilities,
 the few long baselines would be completely dominated by the 30,000 
 shorter baselines, negating the increased resolution.  One way around 
 this problem is to build additional antennae to more uniformly cover the 
-$(u,v)$ plane.  However, this is often expensive and impractical, so instead, 
+$(u,v)$ plane.  However, this is often expensive and impractical.  Instead, 
 the visibilities from the shorter baselines can be given less weight than 
 ones from the longer baselines.  This allows the longer baselines to 
-increase the resolution of the array, but decreases its overall 
-sensitivity due to the contribution of so many visibilities being decreased.
+increase the resolution of the array.  However, its overall 
+sensitivity decreases due to the contribution of so many visibilities being decreased.  
+This is a trade-off that must be considered when designing an array.  The proper 
+weight should reflect the scientific goals the array is intended to achieve.
 
 
 \end{document}

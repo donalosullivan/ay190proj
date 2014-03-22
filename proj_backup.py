@@ -158,10 +158,8 @@ def get_selection(pos,vis,N,orderby='asc'):
 ##############################################
 #MAIN 1: DFT
 ##############################################
-def part_one(N,order,l,m):
+def part_one(N,order,l,m,lmax,mmax):
 
-    lmax,mmax = l[0],m[0]
-    
     #Get whether we want closest or farthest antennae
     if order=='asc': imstring="closest"
     elif order=='desc': imstring="farthest"
@@ -172,110 +170,99 @@ def part_one(N,order,l,m):
     rows,antennae = get_selection(pos,vis,N,order) 
 
     #Plot positions of antennae being used
-    #mpl.figure()
-    #mpl.plot( pos[:,1]/meter, pos[:,2]/meter, 'k.',label="inactive antennae")
-    #mpl.plot(pos[antennae-1,1]/meter,pos[antennae-1,2]/meter,'ro',label="active antennae")
-    #mpl.xlabel('$x [m]$',fontsize=20)
-    #mpl.ylabel('$y [m]$',fontsize=20)
-    #mpl.legend()
-    #mpl.savefig("%i_%santennae.pdf" % (N,imstring))
+    mpl.figure()
+    mpl.plot( pos[:,1]/meter, pos[:,2]/meter, 'k.',label="inactive antennae")
+    mpl.plot(pos[antennae-1,1]/meter,pos[antennae-1,2]/meter,'ro',label="active antennae")
+    mpl.xlabel('$x [m]$',fontsize=20)
+    mpl.ylabel('$y [m]$',fontsize=20)
+    mpl.legend()
+    mpl.savefig("%i_%santennae.pdf" % (N,imstring))
 
     #Create cropped selection of uvvis using only the selected antennae
     uvvis_cropped = np.zeros( (len(rows),vis.shape[1]) )
     for i in range(len(rows)): uvvis_cropped[i] = uvvis[rows[i]]
 
     #Get intensity using cropped array
-    t0 = time.clock()
+    #t0 = time.clock()
     dftI = DFT(uvvis_cropped,l,m)
-    t = time.clock()-t0 
+    #t = time.clock()-t0 
 
     #Plot results
-    #lmax=lmax/arcsec
-    #mmax=mmax/arcsec
-    #mpl.figure()
-    #mpl.imshow(np.abs(dftI),extent=[-lmax,lmax,-mmax,mmax])
-    #mpl.xlabel('$l (arcseconds)$',fontsize=20)
-    #mpl.ylabel('$m (arcseconds)$',fontsize=20)
-    #mpl.savefig("DFT_image_%i%s.pdf" % (N,imstring))
-    #mpl.show()
-    
-    return t
-    
-#DFT TIMING: wrapped it in a method to avoid commenting/uncommenting
-def time_part_one():
-    
-    def quad(x,a,b,c): return a*x**2 + b*x + c #define a quadratic function for fitting
-    NN = np.array( [2,4,6,8,10,20] ) #Values of N to time
-    TT = np.zeros(len(NN))
-    for i,N in enumerate(NN):
-        TT[i] = part_one(N,'asc',l,m) #Store time taken to run
-        print N,TT[i]   
-    a,b,c = fit( quad, NN, TT )[0] #Fit quadratic to data
-    NN_sm = np.linspace(NN[0],NN[-1],100) #Create smoothed domain
+    lmax=lmax/arcsec
+    mmax=mmax/arcsec
     mpl.figure()
-    mpl.plot(NN,TT,'ko')
-    mpl.plot(NN_sm,quad(NN_sm,a,b,c),'r-',label=r"$%.2fx^{2} + %.2fx + %.2f$" % (a,b,c))
-    mpl.xlabel("$N$")
-    mpl.ylabel("$t$")
-    mpl.legend()
-    mpl.savefig("DFT_image_timing.pdf")
+    mpl.imshow(np.abs(dftI),extent=[-lmax,lmax,-mmax,mmax])
+    mpl.xlabel('$l (arcseconds)$',fontsize=20)
+    mpl.ylabel('$m (arcseconds)$',fontsize=20)
+    mpl.savefig("DFT_image_%i%s.pdf" % (N,imstring))
     mpl.show()
+    
+    #return t
+
+#DFT TIMING: UNCOMMENT TO USE
+#def quad(x,a,b,c): return a*x**2 + b*x + c #define a quadratic function for fitting
+#NN = np.array( [2,4,6,8,10,20] ) #Values of N to time
+#TT = np.zeros(len(NN))
+#for i,N in enumerate(NN):
+#    TT[i] = part_one(N,'asc',l,m,lmax,mmax) #Store time taken to run
+#    print N,TT[i]   
+#a,b,c = fit( quad, NN, TT )[0] #Fit quadratic to data
+#NN_sm = np.linspace(NN[0],NN[-1],100) #Create smoothed domain
+#mpl.figure()
+#mpl.plot(NN,TT,'ko')
+#mpl.plot(NN_sm,quad(NN_sm,a,b,c),'r-',label=r"$%.2fx^{2} + %.2fx + %.2f$" % (a,b,c))
+#mpl.xlabel("$t$")
+#mpl.ylabel("$N$")
+#mpl.legend()
+#mpl.savefig("DFT_image_timing.pdf")
+#mpl.show()
 
 
 #############################################
 #MAIN 2: FFT
 #############################################
 
-def part_two(N,order,l,m):
-
-    lmax,mmax = l[0],m[0]
-    
-    #Create a grid of u and v values to fill
+def part_two():
+#Create a grid of u and v values to fill
     ugrid = np.linspace(-60000,60000,res)
     vgrid = np.linspace(-60000,60000,res)
 
-    #Redefine uvvis_cropped
-    rows,antennae = get_selection(pos,vis,N,order) 
-    uvvis_cropped = np.zeros( (len(rows),vis.shape[1]) )
-    for i in range(len(rows)): uvvis_cropped[i] = uvvis[rows[i]]
-    
-    t0 = time.clock()
-    #Fill the grid
+#Fill the grid
     Vgrid=uv_grid(uvvis_cropped,ugrid,vgrid)
 
-    #Calculate intensity (which could have a small imaginary part due to numerical error)
+#Calculate intensity (which could have a small imaginary part due to numerical error)
     fftI=np.zeros(np.shape(Vgrid))+np.zeros(np.shape(Vgrid))*im
 
-    #fftshift is used because the output of ifft2 is ordered in a non-intuitive way for plotting
-    #fftshift fixes this
+#fftshift is used because the output of ifft2 is ordered in a non-intuitive way for plotting
+#fftshift fixes this
     for i in range(len(l)):
         for j in range(len(m)):
             fftI[i][j]=(np.fft.fftshift(np.fft.ifft2(Vgrid))[i][j]*(1-l[i]**2-m[j]**2)**0.5)/(A(l[i],m[j]))
-    t = time.clock()-t0
+    return fftI
 
-    #Plot the results (use absolute value of intensities just in case there is a small imaginary part)
-    #lmax=lmax/arcsec #Convert lmax and mmax back to arcseconds for plotting purposes
-    #mmax=mmax/arcsec
-    #mpl.imshow(np.abs(fftI),extent=[-lmax,lmax,-mmax,mmax])
-    #mpl.xlabel('$l$ (arcseconds)',fontsize=20)
-    #mpl.ylabel('$m$ (arcseconds)',fontsize=20)
-    #mpl.savefig('FFT_Image.pdf')
-    #mpl.show()
-    
-    return t
+N=256 #Use all the antennae to make the image
 
+#Redefine uvvis_cropped, which will be used inside part_two()
+rows,antennae = get_selection(pos,vis,N,order) 
+uvvis_cropped = np.zeros( (len(rows),vis.shape[1]) )
+for i in range(len(rows)): uvvis_cropped[i] = uvvis[rows[i]]
 
 #Calculate the intensities
-#part_two(256,'asc',l,m)
+fftI=part_two()
 
+#Plot the results (use absolute value of intensities just in case there is a small imagniary part)
+lmax=lmax/arcsec#Convert lmax and mmax back to arcseconds for plotting purposes
+mmax=mmax/arcsec
+mpl.imshow(np.abs(fftI),extent=[-lmax,lmax,-mmax,mmax])
+mpl.xlabel('$l$ (arcseconds)',fontsize=20)
+mpl.ylabel('$m$ (arcseconds)',fontsize=20)
+mpl.savefig('FFT_Image.pdf')
+mpl.show()
 
 #FFT TIMING: 
 def nlogn(x,a,c): return a*x*np.log10(x)+c #define a nlog(n) function for fitting
-NN = np.array( [2,4,6,8,10,20] ) #Values of N to time
+NN = np.array( [50,100,150,200,250] ) #Values of N to time
 TT = np.zeros(len(NN))
-
-
-
 
 for i in range(len(NN)):
 #Redifine uvvis_cropped with the number of antennae desired for timing
@@ -287,8 +274,6 @@ for i in range(len(NN)):
 #Time the FFT routine
     TT[i]=timeit.timeit('part_two()',setup='from proj import part_two',number=1)
     print NN[i],TT[i]
-   
-
 
 #Fit an NlogN trend to the timings
 a,c = fit( nlogn, NN, TT )[0]

@@ -164,10 +164,10 @@ runs much more quickly than the DFT.}
 \subsection{Gridding}
 One of the key steps in performing an FFT of the visibilities is gridding.  
 For this project, by adding all measured visibilities to the gridpoints 
-to which they were assigned, we are giving equal weighting to each 
-measured visibility.  This seems like a natural thing to do, but it 
-does introduce possible problems.  If the radio array provides 
-non-uniform $(u,v)$ coverage, extra weight will be given to 
+to which they were assigned, we are giving equal weight to each 
+measured visibility when computing the FFT.  This seems like a natural 
+thing to do, but it does introduce possible problems.  If the radio array 
+provides non-uniform $(u,v)$ coverage, extra weight will be given to 
 certain gridpoints just because they have more measured 
 visibilities around them.  For example, the Owens Valley LWA 
 has 256 antennae within a 200 meter radius, providing over 

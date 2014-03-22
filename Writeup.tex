@@ -118,7 +118,7 @@ The method \texttt{part\_one} implements this DFT construction of $I(l,m)$ for a
 
 \subsection{Results}
 
-The images obtained by using the $10$ closest/farthest antennae are shown in Figure~\ref{fig:dft_results}. Immediately obvious is the difference in resolution between the two; the $10$ closest antennae have a much smaller baseline on average and so provide a more blurred image while the $10$ farthest have a relatively large baseline and provide more fine detail image. What is perhaps not immediately obvious is the cause of the asymmetry, given that the FFT (see next section) is symmetric. We explain this in the discussion section at the end. Finally, Figure~\ref{fig:dft_timing} shows the efficiency of the DFT algorithm to be $\theta(N^{2})$.
+The images obtained by using the $10$ closest/farthest antennae are shown in Figure~\ref{fig:dft_results}. Immediately obvious is the difference in resolution between the two; the $10$ closest antennae have a much smaller baseline on average and so provide a more blurred image while the $10$ farthest have a relatively large baseline and provide more fine detail image. What is perhaps not immediately obvious is the cause of the asymmetry, given that the FFT (see next section) is symmetric. We explain this in the discussion section at the end. Finally, timing will also be discussed in the last section.
 
 \begin{figure}[!h]
 \centerline{
@@ -134,14 +134,7 @@ The images obtained by using the $10$ closest/farthest antennae are shown in Fig
 \end{figure}
 
 
-\begin{figure}[!h]
 
-\centerline{
-\includegraphics[width=0.5\textwidth]{DFT_image_timing.pdf}
-}
-\caption{Efficiency/time-cost of DFT algorithm as a function of number of antennae used ($N$).}
-\label{fig:dft_timing}
-\end{figure}
 \section{Imaging with an FFT}
 Python's built-in FFT and inverse-FFT functions expect the input 
 to be on an evenly spaced grid.  So to form an image from the 

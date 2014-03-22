@@ -147,8 +147,9 @@ def get_selection(pos,vis,N,orderby='asc'):
         if ant_dic.has_key(i) and ant_dic.has_key(j):
             rows.append(ind)
 
-    antennae_int = np.array( [ int(antennae[i]) for i in range(N) ] ) #Cast to ints
-    #Return the indices of these rows 
+    antennae_int = np.array( [ int(antennae[i]) for i in range(N) ] ) #Cast to int
+    
+    #Return the indices of these rows and indices of antennae to be used
     return rows,antennae_int
 
 
@@ -158,6 +159,7 @@ def get_selection(pos,vis,N,orderby='asc'):
 ##############################################
 def part_one(N,order,l,m,lmax,mmax):
 
+    #Get whether we want closest or farthest antennae
     if order=='asc': imstring="closest"
     elif order=='desc': imstring="farthest"
     else:
@@ -194,7 +196,7 @@ def part_one(N,order,l,m,lmax,mmax):
     mpl.savefig("DFT_image_%i%s.pdf" % (N,imstring))
     mpl.show()
     
-    return t
+    #return t
 
 #TIMING: UNCOMMENT TO USE
 #def quad(x,a,b,c): return a*x**2 + b*x + c #define a linear function for fitting

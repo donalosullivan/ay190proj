@@ -34,6 +34,7 @@
 \Large
 Ay190 -- Final Project\\
 Scott Barenfeld\\
+D\'{o}nal O Sullivan\\
 Date: \today
 \end{center}
 
@@ -68,7 +69,7 @@ Fourier transform.  Thus, an image of the intensity pattern on the sky can
 be generated from the inverse Fourier transform of the measured visibilities.
 
 \begin{equation}\label{eq:vis3}
-\mathcal{I}(l,m)=\int_{-\infty}^{\infty} \! \int_{-\infty}^{\infty} \! \frac{\sqrt{1-l^2-m^2}}{A(l,m)I(l,m)}e^{2\pi i(ul+vm)} \, \mathrm{d}u \, \mathrm{d}v,
+\frac{\mathcal{I}(l,m)A(l,m)}{\sqrt{1-l^2-m^2}}=\int_{-\infty}^{\infty} \! \int_{-\infty}^{\infty} \! \mathcal{V}(u,v)e^{2\pi i(ul+vm)} \, \mathrm{d}u \, \mathrm{d}v,
 \end{equation}  
 
 \section{Setup}
@@ -87,11 +88,60 @@ single array, \texttt{uvvis}.
 
 \section{Imaging with a DFT}
 
-Using a Discrete Fourier Transform is relatively straight forward. The discretized version of ~\ref{eq:vis3} is simply
-\begin{equation}\label{eq:vis3}
-\mathcal{I}(l,m)= \Sigma_{u} \! \Sigma_{v} \! \frac{\sqrt{1-l^2-m^2}}{A(l,m)I(l,m)}e^{2\pi i(ul+vm)} \,
-\end{equation}  
+\subsection{Equations and Code Layout}
+Using a Discrete Fourier Transform is relatively straight forward. We compute an intensity map $I(l,m)$ using the discretized version of Equation~\ref{eq:vis3}, which is implemented by the function \texttt{DFT} in our code.
+\begin{equation}\label{eq:dft1}
+\mathcal{I}(l,m)= \frac{\sqrt{1-l^2-m^2}}{A(l,m)}\displaystyle\sum\limits_{u}  \! \displaystyle\sum\limits_{v} \! \mathcal{V}(u,v)e^{2\pi i(ul+vm)} \,
+\end{equation}
 
+Here, the summation is over the baselines $u$ and $v$ connecting a subset of the antennae (e.g. the $10$ closest/farthest antennae). The following definitions are used to simplify the layout of the code:
+
+\begin{equation}\label{eq:a}
+a = \sqrt{1-l^2-m^2} \\
+\end{equation}
+\begin{equation}\label{eq:rhs}
+DFT_{rhs} = \displaystyle\sum\limits_{u}  \! \displaystyle\sum\limits_{v} \! \mathcal{V}(u,v)e^{2\pi i(ul+vm)}\\
+\end{equation}
+
+such that:
+\begin{equation}\label{eq:dft2}
+\mathcal{I}(l,m)= \frac{a}{A(l,m)} DFT_{rhs} \,
+\end{equation}
+
+Finally, the antenna beam mentioned earlier is implemented as a Gaussian with a standard deviation of $\sigma$=1 arcmin, as in Equation~\ref{eq:gauss} which is really only inserted here for reference and comparison with the code.
+
+\begin{equation}\label{eq:gauss}
+\mathcal{A}(l,m)= \frac{1}{\sigma \sqrt{\pi}} exp{ \frac{-(l^{2} + m^{2})}{2 \sigma^{2}} }
+\end{equation}
+
+The method \texttt{part\_one} implements this DFT construction of $I(l,m)$ for a given subset of antennae defined by the parameters \texttt{N} and \texttt{order} where \texttt{N} is the number of antennae to be used and \texttt{order} may have the values 'asc' (ascending) or 'desc' (descending); meaning that the $N$ closest/farthest antennae will be used, respectively. This selection is implemented by the method \texttt{get\_selection}, which indicates which rows of the \texttt{uvvis} array may be used given the selected antennae and also returns the indices of the antennae themselves. Once this selection is made, the rest is a straight forward implementation of Equations ~\ref{eq:dft2} and ~\ref{eq:rhs}.
+
+\subsection{Results}
+
+The images obtained by using the $10$ closest/farthest antennae are shown in Figure~\ref{fig:dft_results}. Immediately obvious is the difference in resolution between the two; the $10$ closest antennae have a much smaller baseline on average and so provide a more blurred image while the $10$ farthest have a relatively large baseline and provide more fine detail image. What is perhaps not immediately obvious is the cause of the asymmetry, given that the FFT (see next section) is symmetric. We explain this in the discussion section at the end. Finally, Figure~\ref{fig:dft_timing} shows the efficiency of the DFT algorithm to be $\theta(N^{2})$.
+
+\begin{figure}[!h]
+\centerline{
+\includegraphics[width=0.5\textwidth]{10_closestantennae.pdf}
+\includegraphics[width=0.5\textwidth]{10_farthestantennae.pdf}
+}
+\centerline{
+\includegraphics[width=0.5\textwidth]{DFT_image_10closest.pdf}
+\includegraphics[width=0.5\textwidth]{DFT_image_10farthest.pdf}
+}
+\caption{Image created with a DFT using (left) $10$ closest and (right) $10$ farthest antennae. The top row shows the antennae positions, while the bottom row shows the corresponding image created.}
+\label{fig:dft_results}
+\end{figure}
+
+
+\begin{figure}[!h]
+
+\centerline{
+\includegraphics[width=0.5\textwidth]{DFT_image_timing.pdf}
+}
+\caption{Efficiency/time-cost of DFT algorithm as a function of number of antennae used ($N$).}
+\label{fig:dft_timing}
+\end{figure}
 \section{Imaging with an FFT}
 Python's built-in FFT and inverse-FFT functions expect the input 
 to be on an evenly spaced grid.  So to form an image from the 
